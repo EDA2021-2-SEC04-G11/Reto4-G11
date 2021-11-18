@@ -1,38 +1,57 @@
-﻿"""
- * Copyright 2020, Departamento de sistemas y Computación,
- * Universidad de Los Andes
- *
- *
- * Desarrolado para el curso ISIS1225 - Estructuras de Datos y Algoritmos
- *
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
- """
-
-import config as cf
+﻿import config as cf
 import model
 import csv
 
+# FILE:
+#
 
-"""
-El controlador se encarga de mediar entre la vista y el modelo.
-"""
+# EMPTY analyzer
 
-# Inicialización del Catálogo de libros
+def init():
+  return model.init()
 
-# Funciones para la carga de datos
+# LOAD DATA
 
-# Funciones de ordenamiento
+def loaddata(analyzer):
+  loadairports(analyzer)
 
-# Funciones de consulta sobre el catálogo
+def loadairports(analyzer):
+  filedir = cf.data_dir + 'Skylines/airports_full.csv'
+  file = csv.DictReader(open(filedir, encoding='utf-8'))
+  for test in file:
+    pass
+
+def loadroutes(analyzer):
+  filedir = cf.data_dir + 'Skylines/routes_full.csv'
+  file = csv.DictReader(open(filedir, encoding='utf-8'))
+  for test in file:
+    pass
+
+def loadcities(analyzer):
+  filedir = cf.data_dir + 'Skylines/worldcities_full.csv'
+  file = csv.DictReader(open(filedir, encoding='utf-8'))
+  for test in file:
+    pass
+
+# REQUIREMENTS
+
+def req1(analyzer):
+  return model.req1(analyzer)
+
+def req2(analyzer):
+  return model.req2(analyzer)
+
+def req3(analyzer):
+  return model.req3(analyzer)
+
+def req4(analyzer):
+  return model.req4(analyzer)
+
+def req5(analyzer):
+  return model.req5(analyzer)
+
+def req6(analyzer):
+  return model.req6(analyzer)
+
+def req7(analyzer):
+  return model.req7(analyzer)
