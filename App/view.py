@@ -5,6 +5,8 @@ from DISClib.ADT import list as lt
 assert cf
 import time
 
+global analyzer
+
 def printMenu():
     print("<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>")
     print("Welcome")
@@ -20,92 +22,92 @@ def printMenu():
 def charge():
   start_time = time.process_time()
   print('\n\n ... LOADING DATA ...\n\n')
-  analyzer = init()
-  loaddata(analyzer)
+  init()
+  loaddata()
   print('\n\n ... DATA LOADED ...\n\n')
   stop_time = time.process_time()
   elapsed_time_mseg = round((stop_time - start_time)*1000,2)
   input('\nPRESS ENTER TO CONTINUE') 
-  return analyzer
 
 def init(): 
-    return controller.init()
+  analyzer = controller.init()
+  return analyzer
 
-def loaddata(analyzer):
-  controller.loaddata(analyzer)
+def loaddata():
+  controller.loaddata()
 
-def req1(analyzer):
+def req1():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req1(analyzer)
+  pack = controller.req1()
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
   print(f"TIME REQUIRED : {timef}")
 
-def req2(analyzer):
+def req2():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req2(analyzer)
+  pack = controller.req2()
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
   print(f"TIME REQUIRED : {timef}")
 
-def req3(analyzer):
+def req3():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req3(analyzer)
+  pack = controller.req3()
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
   print(f"TIME REQUIRED : {timef}")
 
-def req4(analyzer):
+def req4():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req4(analyzer)
+  pack = controller.req4()
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
   print(f"TIME REQUIRED : {timef}")
 
-def req5(analyzer):
+def req5():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req5(analyzer)
+  pack = controller.req5()
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
   print(f"TIME REQUIRED : {timef}")
 
-def req6(analyzer):
+def req6():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req6(analyzer)
+  pack = controller.req6()
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
   print(f"TIME REQUIRED : {timef}")
 
-def req7(analyzer):
+def req7():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req7(analyzer)
+  pack = controller.req7()
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
@@ -114,7 +116,7 @@ def req7(analyzer):
 """
 Menu 
 """
-analyzer = charge()
+charge()
 while True:
   printMenu()
   while True:
@@ -125,19 +127,19 @@ while True:
     except:
       continue
   if option == 1:
-    req1(analyzer)
+    req1()
   elif option == 2:
-    req2(analyzer)
+    req2()
   elif option == 3:
-    req3(analyzer)
+    req3()
   elif option == 4:
-    req4(analyzer)
+    req4()
   elif option == 5:
-    req5(analyzer)
+    req5()
   elif option == 6:
-    req6(analyzer)
+    req6()
   elif option == 7:
-    req7(analyzer)
+    req7()
   elif option == 0:
     sys.exit(0)
   input('\nPRESS ENTER TO CONTINUE')

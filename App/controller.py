@@ -1,57 +1,63 @@
 ﻿import config as cf
 import model
 import csv
+import sys
 
 # FILE:
 #
 
-# EMPTY analyzer
+# EMPTY 
+
+global analyzer
 
 def init():
-  return model.init()
+  analyzer = model.init()
+  return analyzer
 
 # LOAD DATA
 
-def loaddata(analyzer):
-  loadairports(analyzer)
+def loaddata():
+  loadairports()
+  loadcities()
+  loadroutes()
 
-def loadairports(analyzer):
+def loadairports():
   filedir = cf.data_dir + 'Skylines/airports_full.csv'
   file = csv.DictReader(open(filedir, encoding='utf-8'))
-  for test in file:
-    pass
+  for airportdata in file:
+    model.loadair(airportdata)
 
-def loadroutes(analyzer):
+def loadcities():
+  filedir = cf.data_dir + 'Skylines/worldcities.csv'
+  file = csv.DictReader(open(filedir, encoding='utf-8'))
+  for citydata in file:
+    model.loadcity(citydata)
+
+def loadroutes():
   filedir = cf.data_dir + 'Skylines/routes_full.csv'
   file = csv.DictReader(open(filedir, encoding='utf-8'))
-  for test in file:
-    pass
-
-def loadcities(analyzer):
-  filedir = cf.data_dir + 'Skylines/worldcities_full.csv'
-  file = csv.DictReader(open(filedir, encoding='utf-8'))
-  for test in file:
-    pass
+  for routedata in file:
+    model.loadroute(routedata)
 
 # REQUIREMENTS
 
-def req1(analyzer):
-  return model.req1(analyzer)
+def req1():
+  return model.req1()
 
-def req2(analyzer):
-  return model.req2(analyzer)
+def req2():
+  return model.req2()
 
-def req3(analyzer):
-  return model.req3(analyzer)
+def req3():
+  return model.req3()
 
-def req4(analyzer):
-  return model.req4(analyzer)
+def req4():
+  return model.req4()
 
-def req5(analyzer):
-  return model.req5(analyzer)
+def req5():
+  return model.req5()
 
-def req6(analyzer):
-  return model.req6(analyzer)
+def req6():
+  return model.req6()
 
-def req7(analyzer):
-  return model.req7(analyzer)
+def req7():
+  return model.req7()
