@@ -6,6 +6,7 @@ from DISClib.DataStructures import graphstructure as graph
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.ADT.graph import gr
+import sys
 assert cf
 
 # ==============================
@@ -20,10 +21,14 @@ class iatamodel:
         self.code = pack['IATA'].strip()
         self.lati = round(float(pack['Latitude'].strip()),2)
         self.long = round(float(pack['Longitude'].strip()),2)
+    def printmodel(self):
+        print('\n')
+        print(f'| name: {self.name} | city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} |')
+        print('\n')
 
 class citymodel:
     def __init__(self,pack) -> None:
-        self.city = pack['city'].strip()
+        self.city = pack['city_ascii'].strip()
         self.lati = round(float(pack['lat'].strip()),2)
         self.long = round(float(pack['lng'].strip()),2)
         self.country = pack['country']
@@ -36,7 +41,6 @@ class citymodel:
         except:
             self.population = 0
         self.id = float(pack['id'].strip())
-
 
 # ==============================
 # CHARGE DATA
@@ -53,7 +57,7 @@ def init():
     analyzer['cities-id-map'] = mp.newMap(numelements=41001)
     analyzer['cities-map'] = mp.newMap(numelements=41001)
     analyzer['airports-map'] = mp.newMap(numelements=10700)
-    analyzer['cities-not-found-in-citiesfile'] = gr.newGraph(datastructure='ADJ_LIST',directed=True, size=41001, comparefunction=cmpcity)
+    analyzer['exhibition'] = None
     return analyzer
 
 def loadair(airportdata):
@@ -61,6 +65,9 @@ def loadair(airportdata):
     key = iata.code
     gr.insertVertex(analyzer['airports-dir'],key)
     mp.put(analyzer['airports-map'],key,iata)
+    # ADD EXHIBITION
+    if analyzer['exhibition'] == None:
+        analyzer['exhibition'] = iata
 
 def loadcity(citydata):
     city = citymodel(citydata)
@@ -89,65 +96,6 @@ def loadroute(routedata):
         # THE ROUTE HAS NOT BEEN ADDED
         gr.addEdge(analyzer['airports-dir'],start,end,weight)
     # LOAD FOR CITY
-    scity,ecity,check = findcities(start,end)
-    if not check:
-        found = gr.getEdge(analyzer['cities-dir'],scity,ecity)
-        if found == None:
-            # THE ROUTE HAS NOT BEEN ADDED
-            gr.addEdge(analyzer['cities-dir'],scity,ecity,weight)
-    else:
-        gr.addEdge(analyzer['cities-not-found-in-citiesfile'],scity,ecity,weight)
-
-def findcities(start,end):
-    siataob = mp.get(analyzer['airports-map'],start)['value']
-    eiataob = mp.get(analyzer['airports-map'],end)['value']
-    scity = None
-    ecity = None
-    check = False
-    # CHECK WHICH CITY SPECIFICALLY, EVEN IF IT REPEATS
-    try:
-        sfound = mp.get(analyzer['cities-map'],siataob.city)['value']
-        skeys = sfound.keys()
-    except:
-        scity = siataob.city
-        check = True
-    try:
-        efound = mp.get(analyzer['cities-map'],eiataob.city)['value']
-        ekeys = efound.keys()
-    except:
-        ecity = eiataob.city
-        check = True
-    smallest = 9999999999
-    if scity == None:
-        for id in skeys:
-            city = mp.get(analyzer['cities-id-map'],id)['value']
-            if len(skeys) == 1:
-                scity = id
-                # AUTOMATICALLY BREAKS HERE
-            else:
-                longdiff = abs(siataob.long-city.long)
-                latdiff = abs(siataob.lati-city.lati)
-                diff = longdiff + latdiff
-                if diff < smallest:
-                    smallest = longdiff
-                    scity = id
-        smallest = 9999999999
-    if ecity == None:
-        for id in ekeys:
-            city = mp.get(analyzer['cities-id-map'],id)['value']
-            if len(ekeys) == 1:
-                ecity = id
-                # AUTOMATICALLY BREAKS HERE
-            else:
-                longdiff = abs(eiataob.long-city.long)
-                latdiff = abs(eiataob.lati-city.lati)
-                diff = longdiff + latdiff
-                if diff < smallest:
-                    smallest = longdiff
-                    scity = id
-    return scity,ecity,check
-
-def exhibition():
     pass
 
 # ==============================

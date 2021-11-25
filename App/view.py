@@ -2,6 +2,7 @@
 import sys
 import controller
 from DISClib.ADT import list as lt
+from DISClib.ADT.graph import gr
 assert cf
 import time
 
@@ -22,12 +23,14 @@ def printMenu():
 def charge():
   start_time = time.process_time()
   print('\n\n ... LOADING DATA ...\n\n')
-  init()
+  analyzer = init()
   loaddata()
   print('\n\n ... DATA LOADED ...\n\n')
   stop_time = time.process_time()
   elapsed_time_mseg = round((stop_time - start_time)*1000,2)
-  input('\nPRESS ENTER TO CONTINUE') 
+  exhibition(analyzer)
+  input('\nPRESS ENTER TO CONTINUE')
+  return analyzer
 
 def init(): 
   analyzer = controller.init()
@@ -35,6 +38,12 @@ def init():
 
 def loaddata():
   controller.loaddata()
+
+def exhibition(analyzer):
+  print(f"Total airports: {gr.numVertices(analyzer['airports-dir'])}")
+  print(f"Total of edges: {gr.numEdges(analyzer['airports-dir'])}")
+  print(f"Total cities: {gr.numVertices(analyzer['cities-dir'])}")
+  analyzer['exhibition'].printmodel()
 
 def req1():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
