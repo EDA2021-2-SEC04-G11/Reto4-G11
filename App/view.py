@@ -41,8 +41,9 @@ def loaddata():
 
 def exhibition(analyzer):
   print(f"Total airports: {gr.numVertices(analyzer['airports-dir'])}")
-  print(f"Total of edges: {gr.numEdges(analyzer['airports-dir'])}")
+  print(f"Total of airport edges: {gr.numEdges(analyzer['airports-dir'])}")
   print(f"Total cities: {gr.numVertices(analyzer['cities-dir'])}")
+  print(f"Total of city edges: {gr.numEdges(analyzer['cities-dir'])}")
   analyzer['exhibition'].printmodel()
 
 def req1():
