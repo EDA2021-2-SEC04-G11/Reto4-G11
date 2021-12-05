@@ -3,6 +3,7 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 from DISClib.ADT.graph import gr
+import os
 assert cf
 import time
 
@@ -21,6 +22,7 @@ def printMenu():
     print("0- EXIT")
 
 def charge():
+  clear()
   start_time = time.process_time()
   print('\n\n ... LOADING DATA ...\n\n')
   analyzer = init()
@@ -30,6 +32,7 @@ def charge():
   elapsed_time_mseg = round((stop_time - start_time)*1000,2)
   exhibition(analyzer)
   input('\nPRESS ENTER TO CONTINUE')
+  clear()
   return analyzer
 
 def init(): 
@@ -40,14 +43,31 @@ def loaddata():
   controller.loaddata()
 
 def exhibition(analyzer):
+  print('\n\n')
+  print("== Airports-Routes Digraph ==")
   print(f"Total airports: {gr.numVertices(analyzer['airports-dir'])}")
   print(f"Total of airport edges: {gr.numEdges(analyzer['airports-dir'])}")
-  print(f"Total cities: {gr.numVertices(analyzer['cities-dir'])}")
-  print(f"Total of city edges: {gr.numEdges(analyzer['cities-dir'])}")
-  analyzer['exhibition'].printmodel()
+  print('First and last airport loaded:')
+  for i in lt.iterator(analyzer['exhibition']['airports-dir']):
+    i.printmodel()
+
+  print('\n\n')
+  print("== Airports-Routes Graph ==")
+  print(f"Total airports: {gr.numVertices(analyzer['airports-nodir'])}")
+  print(f"Total of airport edges: {gr.numEdges(analyzer['airports-nodir'])}")
+  print('First and last airport loaded:')
+  for i in lt.iterator(analyzer['exhibition']['airports-nodir']):
+    i.printmodel()
+
+  print('\n\n')
+  print("== City network ==")
+  print(f"Total cities: {analyzer['cities']['count']}")
+  print('First and last city loaded:')
+  for i in lt.iterator(analyzer['exhibition']['cities']):
+    i.printmodel()
 
 def req1():
-  print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
+  print('+-+-+-+-+-+-+-+-+ REQ 1 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
@@ -69,7 +89,7 @@ def req2():
   print(f"TIME REQUIRED : {timef}")
 
 def req3():
-  print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
+  print('+-+-+-+-+-+-+-+-+ REQ 3 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
@@ -80,7 +100,7 @@ def req3():
   print(f"TIME REQUIRED : {timef}")
 
 def req4():
-  print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
+  print('+-+-+-+-+-+-+-+-+ REQ 4 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
@@ -91,7 +111,7 @@ def req4():
   print(f"TIME REQUIRED : {timef}")
 
 def req5():
-  print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
+  print('+-+-+-+-+-+-+-+-+ REQ 5 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
@@ -102,7 +122,7 @@ def req5():
   print(f"TIME REQUIRED : {timef}")
 
 def req6():
-  print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
+  print('+-+-+-+-+-+-+-+-+ REQ 6 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
@@ -113,7 +133,7 @@ def req6():
   print(f"TIME REQUIRED : {timef}")
 
 def req7():
-  print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
+  print('+-+-+-+-+-+-+-+-+ REQ 7 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
   # DATA
   start_time = time.process_time()
@@ -126,6 +146,7 @@ def req7():
 """
 Menu 
 """
+clear = lambda: os.system('cls')
 charge()
 while True:
   printMenu()
@@ -153,4 +174,6 @@ while True:
   elif option == 0:
     sys.exit(0)
   input('\nPRESS ENTER TO CONTINUE')
+  clear()
+  #print('\n'*5)
 sys.exit(0)

@@ -3,9 +3,6 @@ import model
 import csv
 import sys
 
-# FILE:
-#
-
 # EMPTY 
 
 global analyzer
@@ -22,19 +19,19 @@ def loaddata():
   loadroutes()
 
 def loadairports():
-  filedir = cf.data_dir + 'Skylines/airports_full.csv'
+  filedir = cf.data_dir + 'Skylines/airports-utf8-small.csv'
   file = csv.DictReader(open(filedir, encoding='utf-8'))
   for airportdata in file:
     model.loadair(airportdata)
 
 def loadcities():
-  filedir = cf.data_dir + 'Skylines/worldcities.csv'
+  filedir = cf.data_dir + 'Skylines/worldcities-utf8.csv'
   file = csv.DictReader(open(filedir, encoding='utf-8'))
   for citydata in file:
     model.loadcity(citydata)
 
 def loadroutes():
-  filedir = cf.data_dir + 'Skylines/routes_full.csv'
+  filedir = cf.data_dir + 'Skylines/routes-utf8-small.csv'
   file = csv.DictReader(open(filedir, encoding='utf-8'))
   for routedata in file:
     model.loadroute(routedata)

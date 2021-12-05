@@ -1,11 +1,12 @@
 ﻿import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from DISClib.DataStructures import edge as ed
 from DISClib.DataStructures import mapentry as me
 from DISClib.DataStructures import graphstructure as graph
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
-from DISClib.ADT.graph import gr
+from DISClib.ADT.graph import addEdge, gr
 from math import radians, cos, sin, asin, sqrt
 import sys
 assert cf
@@ -23,9 +24,11 @@ class iatamodel:
         self.lati = round(float(pack['Latitude'].strip()),2)
         self.long = round(float(pack['Longitude'].strip()),2)
     def printmodel(self):
-        print('\n---------------------------------------------------------------------------------------------------------------------')
+        divup = '_'*58+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.name))
+        divdown = '-'*58+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.name))
+        print(divup)
         print(f'| name: {self.name} | city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} |')
-        print('---------------------------------------------------------------------------------------------------------------------')
+        print(divdown)
 
 class citymodel:
     def __init__(self,pack) -> None:
@@ -43,9 +46,11 @@ class citymodel:
             self.population = 0
         self.id = float(pack['id'].strip())
     def printmodel(self):
-        print('\n---------------------------------------------------------------------------------------------------------------------')
+        divup = '_'*58+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.iso3))
+        divdown = '-'*58+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.iso3))
+        print(divup)
         print(f'| city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} | iso3: {self.iso3} |')
-        print('---------------------------------------------------------------------------------------------------------------------')
+        print(divdown)
 
 # ==============================
 # CHARGE DATA
@@ -55,114 +60,84 @@ global analyzer
 analyzer = {}
 
 def init():
-
     analyzer['airports-dir'] = gr.newGraph(datastructure='ADJ_LIST',directed=True, size=10700, comparefunction=cmpairport)
-    #analyzer['airports-nodir'] = gr.newGraph(datastructure='ADJ_LIST',directed=False, size=10700, comparefunction=cmpairport)
-    analyzer['cities-dir'] = gr.newGraph(datastructure='ADJ_LIST',directed=True, size=41001, comparefunction=cmpcity)
-    #nalyzer['cities-nodir'] = gr.newGraph(datastructure='ADJ_LIST',directed=False, size=41001, comparefunction=cmpcity)
-    analyzer['cities-map'] = mp.newMap(numelements=41001)
+    analyzer['airports-nodir'] = gr.newGraph(datastructure='ADJ_LIST',directed=False, size=10700, comparefunction=cmpairport)
     analyzer['airports-map'] = mp.newMap(numelements=10700)
-    analyzer['exhibition'] = None
+
+    analyzer['routes'] = {'map':mp.newMap(numelements=round(92593/2)),'temp':mp.newMap(numelements=round(92593/2))}
+
+    mapcity = mp.newMap(numelements=41001)
+    analyzer['cities'] = {'map':mapcity,'count':0}
+
+    analyzer['exhibition'] = {'airports-dir':lt.newList(),'airports-nodir':lt.newList(),'cities':lt.newList()}
     return analyzer
 
 def loadair(airportdata):
     iata = iatamodel(airportdata)
     key = iata.code
     gr.insertVertex(analyzer['airports-dir'],key)
+    gr.insertVertex(analyzer['airports-nodir'],key)
     mp.put(analyzer['airports-map'],key,iata)
-    # ADD EXHIBITION
-    if analyzer['exhibition'] == None:
-        analyzer['exhibition'] = iata
+    # ADD EXHIBITION IN DIR
+    if lt.size(analyzer['exhibition']['airports-dir']) < 2:
+        lt.addLast(analyzer['exhibition']['airports-dir'],iata)
+    elif lt.size(analyzer['exhibition']['airports-dir']) == 2:
+        lt.removeLast(analyzer['exhibition']['airports-dir'])
+        lt.addLast(analyzer['exhibition']['airports-dir'],iata)
+    # ADD EXHIBITION IN NODIR
+    if lt.size(analyzer['exhibition']['airports-nodir']) < 2:
+        lt.addLast(analyzer['exhibition']['airports-nodir'],iata)
+    elif lt.size(analyzer['exhibition']['airports-nodir']) == 2:
+        lt.removeLast(analyzer['exhibition']['airports-nodir'])
+        lt.addLast(analyzer['exhibition']['airports-nodir'],iata)
 
 def loadcity(citydata):
     city = citymodel(citydata)
-    key = city.city
-    gr.insertVertex(analyzer['cities-dir'],key)
-    # ADD TO CITIES-MAP BUT VERIFY IF IT'S BEEN ADDED
-    found = mp.get(analyzer['cities-map'],city.city)
-    if found != None:
-        # HAS BEEN ADDED, SO WE ADD THE CITY TO THE LIST OF THAT KEY
-        found = found['value']
-        lt.addLast(found,city)
-    else:
-        # HASN'T BEEN ADDED
-        lst = lt.newList()
+    analyzer['cities']['count'] += 1
+    entry = mp.get(analyzer['cities']['map'],city.city)
+    if entry == None:
+        lst = lt.newList(datastructure='ARRAY_LIST')
         lt.addLast(lst,city)
-        mp.put(analyzer['cities-map'],city.city,lst)
+        newvalue = {'lst':lst,'count':1}
+        mp.put(analyzer['cities']['map'],city.city,newvalue)
+    else:
+        found = entry['value']
+        found['count']+=1
+        lt.addLast(found['lst'],city)
+    # ADD EXHIBITION IN CITIES
+    if lt.size(analyzer['exhibition']['cities']) < 2:
+        lt.addLast(analyzer['exhibition']['cities'],city)
+    elif lt.size(analyzer['exhibition']['cities']) == 2:
+        lt.removeLast(analyzer['exhibition']['cities'])
+        lt.addLast(analyzer['exhibition']['cities'],city)
 
 def loadroute(routedata):
-    start = routedata['Departure'].strip()
-    end = routedata['Destination'].strip()
-    weight = round(float(routedata['distance_km'].strip()),2)
-    # LOAD FOR AIRPORT
-    found = gr.getEdge(analyzer['airports-dir'],start,end)
-    if found == None:
-        # THE ROUTE HAS NOT BEEN ADDED
-        gr.addEdge(analyzer['airports-dir'],start,end,weight)
-    # LOAD FOR CITY
-    startobj = mp.get(analyzer['airports-map'],start)['value']
-    endobj = mp.get(analyzer['airports-map'],end)['value']
+    loadrouteDir(routedata)
+    loadrouteNodir(routedata)  
 
-    lat1 = startobj.lati
-    lat2 = endobj.lati
-    lon1 = startobj.long
-    lon2 = endobj.long
+def loadrouteDir(routedata):
+    a = routedata['Departure'].strip()
+    b = routedata['Destination'].strip()
+    distance = float(routedata['distance_km'].strip())
+    airline = routedata['Airline'].strip()
+    weight = (airline,distance)
+    gr.addEdge(analyzer['airports-dir'],a,b,weight)
 
-    startcitylst = mp.get(analyzer['cities-map'],startobj.city)
-    endcitylst = mp.get(analyzer['cities-map'],endobj.city)
-
-    if startcitylst == None:
-        # HASN'T BEEN ADDED
-        lst = lt.newList()
-        lt.addLast(lst,startobj)
-        mp.put(analyzer['cities-map'],startobj.city,lst)
-        gr.insertVertex(analyzer['cities-dir'],startobj.city)
-        startcitylst = lst
-    else:
-        startcitylst = startcitylst['value']
-
-    if endcitylst == None:
-        # HASN'T BEEN ADDED
-        lst = lt.newList()
-        lt.addLast(lst,endobj)
-        mp.put(analyzer['cities-map'],endobj.city,lst)
-        gr.insertVertex(analyzer['cities-dir'],endobj.city)
-        endcitylst = lst
-    else:
-        endcitylst = endcitylst['value']
-
-    if lt.size(startcitylst) > 1:
-        least = 99999999999999999
-        best = None
-        for cityobj in lt.iterator(startcitylst):
-            lat = cityobj.lati
-            lon = cityobj.long
-            distance = haversine(lat1,lon1,lat,lon)
-            if distance < least:
-                least = distance
-                best = cityobj
-        startcity = best
-    elif lt.size(startcitylst) == 1:
-        startcity = lt.firstElement(startcitylst)
-
-    if lt.size(endcitylst) > 1:
-        least = 99999999999999999
-        best = None
-        for cityobj in lt.iterator(endcitylst):
-            lat = cityobj.lati
-            lon = cityobj.long
-            distance = haversine(lat2,lon2,lat,lon)
-            if distance < least:
-                least = distance
-                best = cityobj
-        endcity = best
-    elif lt.size(endcitylst) == 1:
-        endcity = lt.firstElement(endcitylst)    
-
-    found = gr.getEdge(analyzer['cities-dir'],startcity.city,endcity.city)
-    if found == None:
-        # THE ROUTE HAS NOT BEEN ADDED
-        gr.addEdge(analyzer['cities-dir'],startcity.city,endcity.city,weight)
+def loadrouteNodir(routedata):
+    # Vertexa and vertexb can have multiple edges from different airports
+    # In the edges, they must be connected by the same airline
+    a = routedata['Departure'].strip()
+    b = routedata['Destination'].strip()
+    distance = float(routedata['distance_km'].strip())
+    airline = routedata['Airline'].strip()
+    weight = (airline,distance)
+    edges = gr.adjacentEdges(analyzer['airports-dir'],b)
+    for edgefound in lt.iterator(edges):
+        vertexb = ed.other(edgefound,b)
+        if vertexb == a:
+            weightfound = ed.weight(edgefound)
+            if weightfound == weight:
+                gr.addEdge(analyzer['airports-nodir'],a,b,weight)
 
 # ==============================
 # COMPARE FUNCTIONS
@@ -175,7 +150,7 @@ def cmpairport(iatai,iataj):
         iatai = iatai['key']
     if iatai == iataj:
         return 0
-    elif iatai > iataj:
+    elif iatai > iatai:
         return 1
     return -1
 
