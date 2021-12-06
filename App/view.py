@@ -105,9 +105,11 @@ def req2():
 def req3():
   print('+-+-+-+-+-+-+-+-+ REQ 3 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
+  city1 = input('Departure city?\n').strip()
+  city2 = input('Arrival city?\n').strip()
   # DATA
   start_time = time.process_time()
-  pack = controller.req3()
+  pack = controller.req3(city1,city2)
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT

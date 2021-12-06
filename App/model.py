@@ -3,6 +3,7 @@ from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import edge as ed
 from DISClib.DataStructures import bst
+from DISClib.DataStructures import rbt
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
@@ -14,6 +15,10 @@ assert cf
 # ==============================
 # DATA MODEL
 # ==============================
+
+
+global analyzer
+analyzer = {}
 
 class iatamodel:
     def __init__(self,pack) -> None:
@@ -45,6 +50,7 @@ class citymodel:
         except:
             self.population = 0
         self.id = float(pack['id'].strip())
+        self.closestAirport = None
     def printmodel(self):
         populationstr = '{:4e}'.format(self.population)
         divup = '_'*64+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr))
@@ -53,17 +59,21 @@ class citymodel:
         print(f'| city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} | population: {populationstr} |')
         print(divdown)
 
+    def closestAirport(self):
+        if self.closestAirport == None:
+            pass
+        else:
+            pass
 # ==============================
 # CHARGE DATA
 # ==============================
-
-global analyzer
-analyzer = {}
 
 def init():
     analyzer['airports-dir'] = gr.newGraph(datastructure='ADJ_LIST',directed=True, size=10700, comparefunction=cmpairport)
     analyzer['airports-nodir'] = gr.newGraph(datastructure='ADJ_LIST',directed=False, size=10700, comparefunction=cmpairport)
     analyzer['airports-map'] = mp.newMap(numelements=10700)
+    analyzer['airports-tree-lati'] = rbt.newMap(cmptree)
+    analyzer['airports-tree-long'] = rbt.newMap(cmptree)
 
     mapcity = mp.newMap(numelements=41001)
     analyzer['cities'] = {'map':mapcity,'count':0}
@@ -76,7 +86,8 @@ def loadair(airportdata):
     key = iata.code
     gr.insertVertex(analyzer['airports-dir'],key)
     gr.insertVertex(analyzer['airports-nodir'],key)
-    mp.put(analyzer['airports-map'],key,iata)
+    mp.put(analyzer['airports-map'],key,iata)}
+    loadtree(iata)
     # ADD EXHIBITION IN DIR
     if lt.size(analyzer['exhibition']['airports-dir']) < 2:
         lt.addLast(analyzer['exhibition']['airports-dir'],iata)
@@ -90,8 +101,32 @@ def loadair(airportdata):
         lt.removeLast(analyzer['exhibition']['airports-nodir'])
         lt.addLast(analyzer['exhibition']['airports-nodir'],iata)
 
+def loadtree(airport):
+    lati = airport.lati
+    key = round((lati%10)/10)*10 + lati//10
+    entry = rbt.get(analyzer['airports-tree-lati'],key)
+    if entry == None:
+        lst = lt.newList()
+        lt.addLast(airport)
+        mp.put(analyzer['airports-tree-lati'],key,lst)
+    else:
+        lst = entry['value']
+        lt.addLast(lst,airport)
+
+    long = airport.long
+    key = round((long%10)/10)*10 + long//10
+    entry = rbt.get(analyzer['airports-tree-long'],key)
+    if entry == None:
+        lst = lt.newList()
+        lt.addLast(airport)
+        mp.put(analyzer['airports-tree-long'],key,lst)
+    else:
+        lst = entry['value']
+        lt.addLast(lst,airport)
+
 def loadcity(citydata):
     city = citymodel(citydata)
+    city.closestAirport()
     analyzer['cities']['count'] += 1
     entry = mp.get(analyzer['cities']['map'],city.city)
     if entry == None:
@@ -174,6 +209,14 @@ def cmptop(i,j):
     if i[1] > j[1]:
         return -1
     return 1
+
+def cmptree(i,j):
+    if i == j:
+        return 0
+    if i > j:
+        return -1
+    return 1
+
 # ==============================
 # COMPLEMENTARY
 # ==============================
@@ -189,6 +232,9 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2*asin(sqrt(a))
     
     return R * c
+
+def findAirport(city:citymodel):
+    pass
 
 # ==============================
 # REQUIREMENTS
@@ -211,11 +257,41 @@ def req1():
 def req2(code1,code2):
     sccpack = scc.KosarajuSCC(analyzer['airports-dir'])
     return sccpack,scc.stronglyConnected(sccpack,code1,code2)
-def req3():
+
+def req3(city1:str,city2:str,status:tuple):
+    # THERE ARE 3 CASES: (1) The user asked for non-exixtent cities [2 calls min 3 calls max] ; (2) There are multiple cities named like that [2 calls] ; (3) The cities aren't repeated [1 call]
+    entry1 = mp.get(analyzer['cities'],city1)
+    entry2 = mp.get(analyzer['cities'],city2)
+    if status[0]: # IF THIS HAPPENS, IT WILL RETURN AN int INDICATING THE CASE NUMBER
+        if entry1 == None | entry2 == None:   
+            # CASE #1
+            return 1
+        else:
+            # CASE #2
+            lst1,lst2 = me.getValue(entry1),me.getValue(entry2)
+            if lt.size(lst1) > 1 and lt.size(lst2) > 1:
+                return 2,(lst1,lst2)
+            elif lt.size(lst1) > 1:
+                return 2,(lst1)
+            elif lt.size(lst2) > 1:
+                return 2,(lst2)
+            # else: (the case 3)
+    # CASE #3
+    lst1,lst2 = me.getValue(entry1),me.getValue(entry2)
+    chosen = status[1]
+    city1 = lt.getElement(lst1,chosen)
+    city2 = lt.getElement(lst2,chosen)
+    airport1 = findAirport(city1)
+    airport2 = findAirport(city2)
+    return 3
+def req4(city, milles):
+    #graph = djk.Dijkstra(None, city)
     pass
-def req4():
-    pass
-def req5():
+def req5(code):
+    if gr.containsVertex(analyzer['airports-nodir'], code):#me voy a ocupar, vuelvo a las 3
+        edges = gr.adjacentEdges(analyzer['airports-dir'],code)
+    for edgefound in lt.iterator(edges):
+        vertexb = ed.other(edgefound,)
     pass
 def req6():
     pass

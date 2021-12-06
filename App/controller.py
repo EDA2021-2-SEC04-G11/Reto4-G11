@@ -44,8 +44,8 @@ def req1():
 def req2(code1,code2):
   return model.req2(code1,code2)
 
-def req3():
-  return model.req3()
+def req3(city1,city2):
+  return model.req3(city1,city2)
 
 def req4():
   return model.req4()
