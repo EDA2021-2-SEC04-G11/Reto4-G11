@@ -90,12 +90,16 @@ def req1():
 def req2():
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
+  code1 = input('First IATA?\n').strip()
+  code2 = input('Second IATA?\n').strip()
   # DATA
   start_time = time.process_time()
-  pack = controller.req2()
+  pack = controller.req2(code1,code2)
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
+  print(f"There are {pack[0]['components']} Strongly Connected Componentes [SCC] in the Airport-Route network")
+  print(f'Airports {code1} and {code2} are in the same SCC? {pack[1]}')
   print(f"TIME REQUIRED : {timef}")
 
 def req3():

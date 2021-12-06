@@ -41,8 +41,8 @@ def loadroutes():
 def req1():
   return model.req1()
 
-def req2():
-  return model.req2()
+def req2(code1,code2):
+  return model.req2(code1,code2)
 
 def req3():
   return model.req3()

@@ -208,8 +208,9 @@ def req1():
             total += 1
     return bst.keySet(top),total
 
-def req2():
-    pass
+def req2(code1,code2):
+    sccpack = scc.KosarajuSCC(analyzer['airports-dir'])
+    return sccpack,scc.stronglyConnected(sccpack,code1,code2)
 def req3():
     pass
 def req4():
