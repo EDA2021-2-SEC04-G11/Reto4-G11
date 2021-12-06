@@ -1,4 +1,5 @@
-﻿import config as cf
+﻿from App.model import citymodel
+import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
@@ -120,7 +121,9 @@ def req4():
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req4()
+  city = input('Departure city?\n').strip()
+  miles = float(input('User Miles?\n'))
+  pack = controller.req4(city, miles)
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
@@ -131,7 +134,8 @@ def req5():
   # INPUTS
   # DATA
   start_time = time.process_time()
-  pack = controller.req5()
+  airport = input('Departure airport?\n').strip()
+  pack = controller.req5(airport)
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT

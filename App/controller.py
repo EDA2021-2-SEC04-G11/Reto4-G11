@@ -47,11 +47,11 @@ def req2(code1,code2):
 def req3(city1,city2):
   return model.req3(city1,city2)
 
-def req4():
-  return model.req4()
+def req4(city, miles):
+  return model.req4(city, miles)
 
-def req5():
-  return model.req5()
+def req5(airport):
+  return model.req5(airport)
 
 def req6():
   return model.req6()

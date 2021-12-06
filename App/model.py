@@ -50,7 +50,7 @@ class citymodel:
         except:
             self.population = 0
         self.id = float(pack['id'].strip())
-        self.closestAirport = None
+        self.closestAirport(self)
     def printmodel(self):
         populationstr = '{:4e}'.format(self.population)
         divup = '_'*64+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr))
@@ -60,10 +60,18 @@ class citymodel:
         print(divdown)
 
     def closestAirport(self):
+        tempAirport = None
+        tempDistance = 0
         if self.closestAirport == None:
-            pass
-        else:
-            pass
+            for airport in lt.iterator(analyzer['airports-map']):
+                ai = mp.get(analyzer['airports-map'], airport)
+                long = ai.long
+                lati = ai.lati
+                a = abs(haversine(lati, long, self.lati, self.long))
+                if a >= tempDistance:
+                    tempAirport = ai
+                    tempDistance = a
+        self.closestAirport = tempAirport
 # ==============================
 # CHARGE DATA
 # ==============================
@@ -86,7 +94,7 @@ def loadair(airportdata):
     key = iata.code
     gr.insertVertex(analyzer['airports-dir'],key)
     gr.insertVertex(analyzer['airports-nodir'],key)
-    mp.put(analyzer['airports-map'],key,iata)}
+    mp.put(analyzer['airports-map'],key,iata)
     loadtree(iata)
     # ADD EXHIBITION IN DIR
     if lt.size(analyzer['exhibition']['airports-dir']) < 2:
@@ -234,7 +242,8 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * c
 
 def findAirport(city:citymodel):
-    pass
+    return city.closestAirport
+
 
 # ==============================
 # REQUIREMENTS
@@ -284,15 +293,31 @@ def req3(city1:str,city2:str,status:tuple):
     airport1 = findAirport(city1)
     airport2 = findAirport(city2)
     return 3
-def req4(city, milles):
+def req4(city, miles):
     #graph = djk.Dijkstra(None, city)
     pass
-def req5(code):
-    if gr.containsVertex(analyzer['airports-nodir'], code):#me voy a ocupar, vuelvo a las 3
-        edges = gr.adjacentEdges(analyzer['airports-dir'],code)
-    for edgefound in lt.iterator(edges):
-        vertexb = ed.other(edgefound,)
-    pass
+def req5(iata):
+    lst = lt.newList()
+    top = top = bst.newMap()
+    if gr.containsVertex(analyzer['airports-nodir'], iata):
+        edges = gr.adjacentEdges(analyzer['airports-dir'],iata)
+        for edgefound in lt.iterator(edges):
+            vertex = ed.other(edgefound,iata)
+            lt.addLast(lst, vertex)
+        
+        first = lt.firstElement(lst)
+        second = lt.getElement(lst, 1)
+        third = lt.getElement(lst, 2)
+        lastminus2 = lt.getElement(lst, len(lst)-2)        
+        lastminus1 = lt.getElement(lst, len(lst)-1)        
+        last = lt.lastElement(lst)        
+        bst.put(top,(first,second,third,lastminus2,lastminus1,last),0)
+    
+        return len(lst), top
+    else:
+        return None
+
+
 def req6():
     pass
 def req7():
