@@ -2,11 +2,11 @@
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import edge as ed
+from DISClib.DataStructures import bst
 from DISClib.DataStructures import mapentry as me
-from DISClib.DataStructures import graphstructure as graph
 from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
-from DISClib.ADT.graph import addEdge, gr
+from DISClib.ADT import graph as gr
 from math import radians, cos, sin, asin, sqrt
 import sys
 assert cf
@@ -24,10 +24,10 @@ class iatamodel:
         self.lati = round(float(pack['Latitude'].strip()),2)
         self.long = round(float(pack['Longitude'].strip()),2)
     def printmodel(self):
-        divup = '_'*58+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.name))
-        divdown = '-'*58+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.name))
+        divup = '_'*70+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.name))
+        divdown = '-'*70+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.name))
         print(divup)
-        print(f'| name: {self.name} | city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} |')
+        print(f'| IATA: {self.code} | name: {self.name} | city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} |')
         print(divdown)
 
 class citymodel:
@@ -46,10 +46,11 @@ class citymodel:
             self.population = 0
         self.id = float(pack['id'].strip())
     def printmodel(self):
-        divup = '_'*58+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.iso3))
-        divdown = '-'*58+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.iso3))
+        populationstr = '{:4e}'.format(self.population)
+        divup = '_'*64+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr))
+        divdown = '-'*64+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr))
         print(divup)
-        print(f'| city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} | iso3: {self.iso3} |')
+        print(f'| city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} | population: {populationstr} |')
         print(divdown)
 
 # ==============================
@@ -63,8 +64,6 @@ def init():
     analyzer['airports-dir'] = gr.newGraph(datastructure='ADJ_LIST',directed=True, size=10700, comparefunction=cmpairport)
     analyzer['airports-nodir'] = gr.newGraph(datastructure='ADJ_LIST',directed=False, size=10700, comparefunction=cmpairport)
     analyzer['airports-map'] = mp.newMap(numelements=10700)
-
-    analyzer['routes'] = {'map':mp.newMap(numelements=round(92593/2)),'temp':mp.newMap(numelements=round(92593/2))}
 
     mapcity = mp.newMap(numelements=41001)
     analyzer['cities'] = {'map':mapcity,'count':0}
@@ -165,6 +164,16 @@ def cmpcity(idi,idj):
         return 1
     return -1
 
+def cmptop(i,j):
+    if i == j:
+        return 0
+    if i[1] == j[1]:
+        if i[0].code > j[0].code:
+            return 1
+        return -1
+    if i[1] > j[1]:
+        return -1
+    return 1
 # ==============================
 # COMPLEMENTARY
 # ==============================
@@ -186,7 +195,19 @@ def haversine(lat1, lon1, lat2, lon2):
 # ==============================
 
 def req1():
-    pass
+    top = bst.newMap(cmptop)
+    vertexlst = mp.keySet(analyzer['airports-map'])
+    total = 0
+    for vertex in lt.iterator(vertexlst):
+        inbound = gr.indegree(analyzer['airports-dir'],vertex)
+        outbound = gr.degree(analyzer['airports-dir'],vertex)
+        count = outbound + inbound
+        airport = me.getValue(mp.get(analyzer['airports-map'],vertex))
+        bst.put(top,(airport,count,outbound,inbound),0)
+        if count != 0:
+            total += 1
+    return bst.keySet(top),total
+
 def req2():
     pass
 def req3():

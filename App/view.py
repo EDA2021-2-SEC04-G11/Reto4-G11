@@ -75,6 +75,16 @@ def req1():
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
+  print(f'Conected airports inside network {pack[1]}')
+  print('\nMost connected airports in network (top 5)')
+  count = 0
+  for i in lt.iterator(pack[0]):
+    if count == 5:
+      break
+    count += 1
+    print('\n')
+    print(f'IATA: {i[0].code} | Conections: {i[1]} | Inbound: {i[2]} | Outbound: {i[3]}')
+    i[0].printmodel()
   print(f"TIME REQUIRED : {timef}")
 
 def req2():
