@@ -109,6 +109,7 @@ class citymodel:
 
 def init():
     analyzer['airports-dir'] = gr.newGraph(datastructure='ADJ_LIST',directed=True, size=10700, comparefunction=cmpairport)
+    analyzer['airports-dir-helper'] = gr.newGraph(datastructure='ADJ_LIST',directed=True, size=10700, comparefunction=cmpairport)
     analyzer['airports-nodir'] = gr.newGraph(datastructure='ADJ_LIST',directed=False, size=10700, comparefunction=cmpairport)
     analyzer['airports-map'] = mp.newMap(numelements=10700)
     analyzer['airports-tree-lati'] = mp.newMap(comparefunction=cmpairport)
@@ -124,6 +125,7 @@ def loadair(airportdata):
     iata = iatamodel(airportdata)
     key = iata.code
     gr.insertVertex(analyzer['airports-dir'],key)
+    gr.insertVertex(analyzer['airports-dir-helper'],key)
     gr.insertVertex(analyzer['airports-nodir'],key)
     mp.put(analyzer['airports-map'],key,iata)
     loadtree(iata)
@@ -193,7 +195,8 @@ def loadrouteDir(routedata):
     distance = float(routedata['distance_km'].strip())
     airline = routedata['Airline'].strip()
     weight = (airline,distance)
-    gr.addEdge(analyzer['airports-dir'],a,b,weight)
+    gr.addEdge(analyzer['airports-dir'],a,b,distance)
+    gr.addEdge(analyzer['airports-dir-helper'],a,b,weight)
 
 def loadrouteNodir(routedata):
     # Vertexa and vertexb can have multiple edges from different airports
@@ -203,7 +206,7 @@ def loadrouteNodir(routedata):
     distance = float(routedata['distance_km'].strip())
     airline = routedata['Airline'].strip()
     weight = (airline,distance)
-    edges = gr.adjacentEdges(analyzer['airports-dir'],b)
+    edges = gr.adjacentEdges(analyzer['airports-dir-helper'],b)
     for edgefound in lt.iterator(edges):
         vertexb = ed.other(edgefound,b)
         if vertexb == a:
@@ -322,12 +325,17 @@ def req3(city1:str,city2:str,chosen: list):
     search = djk.Dijkstra(analyzer['airports-dir'],city1.airport.code)
     cost = djk.distTo(search,city2.airport.code)
 
+    print(city1.airport.code,city2.airport.code)
+
     pathstack = djk.pathTo(search,city2.airport.code)
     path = lt.newList()
     current = pathstack.pop(pathstack)
     while current != None:
         lt.addLast(path,current)
         current = pathstack.pop(pathstack)
+
+    for i in lt.iterator(path):
+        print(i)
     sys.exit(0)
     stops = None
     return city1,city2,cost,path,stops

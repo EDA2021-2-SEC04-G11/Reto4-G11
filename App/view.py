@@ -104,7 +104,7 @@ def req2():
 
 def req3():
   """
-St. Petersburg
+Saint Petersburg
 Lisbon
   """
   print('+-+-+-+-+-+-+-+-+ REQ 3 +-+-+-+-+-+-+-+-+\n')
