@@ -50,7 +50,8 @@ class citymodel:
         except:
             self.population = 0
         self.id = float(pack['id'].strip())
-        self.closestAirport = None
+        self.airport = None
+        self.closestAirport()
     def printmodel(self):
         populationstr = '{:4e}'.format(self.population)
         divup = '_'*64+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr))
@@ -60,10 +61,30 @@ class citymodel:
         print(divdown)
 
     def closestAirport(self):
-        if self.closestAirport == None:
-            pass
-        else:
-            pass
+        keylati = round((self.lati%10)/10)*10 + self.lati//10
+        keylong = round((self.long%10)/10)*10 + self.long//10
+        entrylati = mp.get(analyzer['airports-tree-lati'],keylati)
+        entrylong = mp.get(analyzer['airports-tree-long'],keylong)
+
+        if entrylati != None and entrylong != None:
+            latilst = entrylati['value']
+            longlst = entrylong['value']
+            
+            lowest = 9999999
+            best = None
+
+            for airport in lt.iterator(latilst):
+                distance = haversine(self.lati,self.long,airport.lati,airport.long)
+                if distance < lowest:
+                    lowest = distance
+                    best = airport
+            for airport in lt.iterator(longlst):
+                distance = haversine(self.lati,self.long,airport.lati,airport.long)
+                if distance < lowest:
+                    lowest = distance
+                    best = airport
+            self.airport = best
+                    
 # ==============================
 # CHARGE DATA
 # ==============================
@@ -72,8 +93,8 @@ def init():
     analyzer['airports-dir'] = gr.newGraph(datastructure='ADJ_LIST',directed=True, size=10700, comparefunction=cmpairport)
     analyzer['airports-nodir'] = gr.newGraph(datastructure='ADJ_LIST',directed=False, size=10700, comparefunction=cmpairport)
     analyzer['airports-map'] = mp.newMap(numelements=10700)
-    analyzer['airports-tree-lati'] = rbt.newMap(cmptree)
-    analyzer['airports-tree-long'] = rbt.newMap(cmptree)
+    analyzer['airports-tree-lati'] = mp.newMap(comparefunction=cmpairport)
+    analyzer['airports-tree-long'] = mp.newMap(comparefunction=cmpairport)
 
     mapcity = mp.newMap(numelements=41001)
     analyzer['cities'] = {'map':mapcity,'count':0}
@@ -86,7 +107,7 @@ def loadair(airportdata):
     key = iata.code
     gr.insertVertex(analyzer['airports-dir'],key)
     gr.insertVertex(analyzer['airports-nodir'],key)
-    mp.put(analyzer['airports-map'],key,iata)}
+    mp.put(analyzer['airports-map'],key,iata)
     loadtree(iata)
     # ADD EXHIBITION IN DIR
     if lt.size(analyzer['exhibition']['airports-dir']) < 2:
@@ -104,10 +125,10 @@ def loadair(airportdata):
 def loadtree(airport):
     lati = airport.lati
     key = round((lati%10)/10)*10 + lati//10
-    entry = rbt.get(analyzer['airports-tree-lati'],key)
+    entry = mp.get(analyzer['airports-tree-lati'],key)
     if entry == None:
         lst = lt.newList()
-        lt.addLast(airport)
+        lt.addLast(lst,airport)
         mp.put(analyzer['airports-tree-lati'],key,lst)
     else:
         lst = entry['value']
@@ -115,10 +136,10 @@ def loadtree(airport):
 
     long = airport.long
     key = round((long%10)/10)*10 + long//10
-    entry = rbt.get(analyzer['airports-tree-long'],key)
+    entry = mp.get(analyzer['airports-tree-long'],key)
     if entry == None:
         lst = lt.newList()
-        lt.addLast(airport)
+        lt.addLast(lst,airport)
         mp.put(analyzer['airports-tree-long'],key,lst)
     else:
         lst = entry['value']
@@ -126,7 +147,6 @@ def loadtree(airport):
 
 def loadcity(citydata):
     city = citymodel(citydata)
-    city.closestAirport()
     analyzer['cities']['count'] += 1
     entry = mp.get(analyzer['cities']['map'],city.city)
     if entry == None:
@@ -182,11 +202,18 @@ def cmpairport(iatai,iataj):
         iataj = iataj['key']
     if type(iatai) == dict:
         iatai = iatai['key']
-    if iatai == iataj:
-        return 0
-    elif iatai > iatai:
-        return 1
-    return -1
+    try:
+        if iatai.code == iataj.code:
+            return 0
+        elif iatai.code > iatai.code:
+            return 1
+        return -1
+    except:
+        if iatai == iataj:
+            return 0
+        elif iatai > iatai:
+            return 1
+        return -1
 
 def cmpcity(idi,idj):
     if type(idj) == dict:
@@ -233,9 +260,6 @@ def haversine(lat1, lon1, lat2, lon2):
     
     return R * c
 
-def findAirport(city:citymodel):
-    pass
-
 # ==============================
 # REQUIREMENTS
 # ==============================
@@ -258,32 +282,33 @@ def req2(code1,code2):
     sccpack = scc.KosarajuSCC(analyzer['airports-dir'])
     return sccpack,scc.stronglyConnected(sccpack,code1,code2)
 
-def req3(city1:str,city2:str,status:tuple):
-    # THERE ARE 3 CASES: (1) The user asked for non-exixtent cities [2 calls min 3 calls max] ; (2) There are multiple cities named like that [2 calls] ; (3) The cities aren't repeated [1 call]
-    entry1 = mp.get(analyzer['cities'],city1)
-    entry2 = mp.get(analyzer['cities'],city2)
-    if status[0]: # IF THIS HAPPENS, IT WILL RETURN AN int INDICATING THE CASE NUMBER
-        if entry1 == None | entry2 == None:   
-            # CASE #1
-            return 1
-        else:
-            # CASE #2
-            lst1,lst2 = me.getValue(entry1),me.getValue(entry2)
-            if lt.size(lst1) > 1 and lt.size(lst2) > 1:
-                return 2,(lst1,lst2)
-            elif lt.size(lst1) > 1:
-                return 2,(lst1)
-            elif lt.size(lst2) > 1:
-                return 2,(lst2)
-            # else: (the case 3)
-    # CASE #3
-    lst1,lst2 = me.getValue(entry1),me.getValue(entry2)
-    chosen = status[1]
-    city1 = lt.getElement(lst1,chosen)
-    city2 = lt.getElement(lst2,chosen)
-    airport1 = findAirport(city1)
-    airport2 = findAirport(city2)
-    return 3
+def req3(city1:str,city2:str,chosen: list):
+    # chosen star value: (None,None)
+    entry1 = mp.get(analyzer['cities']['map'],city1)
+    entry2 = mp.get(analyzer['cities']['map'],city2)
+    if entry1 == None or entry2 == None:   
+        return False
+
+    lst1 = me.getValue(entry1)['lst']
+    lst2 = me.getValue(entry2)['lst']
+    if chosen[0] == None or chosen[1] == None:
+        return lst1,lst2
+
+    city1 = lt.getElement(lst1,chosen[0])
+    city2 = lt.getElement(lst2,chosen[1])
+    search = djk.Dijkstra(analyzer['airports-dir'],city1.airport.code)
+    cost = djk.distTo(search,city2.airport.code)
+
+    pathstack = djk.pathTo(search,city2.airport.code)
+    path = lt.newList()
+    current = 0
+    while current != None:
+        current = pathstack.pop(pathstack)
+        print(current)
+        lt.addLast(path,current)
+    sys.exit(0)
+    stops = None
+    return city1,city2,cost,path,stops
 def req4(city, milles):
     #graph = djk.Dijkstra(None, city)
     pass
