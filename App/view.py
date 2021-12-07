@@ -1,5 +1,4 @@
-﻿from App.model import citymodel
-import config as cf
+﻿import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
@@ -164,6 +163,10 @@ def req5():
   start_time = time.process_time()
   airport = input('Departure airport?\n').strip()
   pack = controller.req5(airport)
+  print(f"There are {pack[0]} airport(s) affected by the removal of {airport}")
+  print(f"The first & last 3 airports affected are:")
+  for airport in lt.iterator(pack[1]):
+    print(f'IATA: {airport.code} | Name: {airport.name} | City: {airport.city} |\n')
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT

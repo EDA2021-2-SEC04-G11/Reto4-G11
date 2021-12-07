@@ -9,6 +9,7 @@ from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.ADT import graph as gr
 from math import radians, cos, sin, asin, sqrt
+from decimal import Decimal, ROUND_HALF_UP
 import sys
 assert cf
 
@@ -26,8 +27,8 @@ class iatamodel:
         self.city = pack['City'].strip()
         self.country = pack['Country'].strip()
         self.code = pack['IATA'].strip()
-        self.lati = round(float(pack['Latitude'].strip()),2)
-        self.long = round(float(pack['Longitude'].strip()),2)
+        self.lati = round(float(pack['Latitude'].strip()),5)
+        self.long = round(float(pack['Longitude'].strip()),5)
     def printmodel(self):
         divup = '_'*70+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.name))
         divdown = '-'*70+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(self.name))
@@ -38,8 +39,8 @@ class iatamodel:
 class citymodel:
     def __init__(self,pack) -> None:
         self.city = pack['city_ascii'].strip()
-        self.lati = round(float(pack['lat'].strip()),2)
-        self.long = round(float(pack['lng'].strip()),2)
+        self.lati = round(float(pack['lat'].strip()),5)
+        self.long = round(float(pack['lng'].strip()),5)
         self.country = pack['country']
         self.iso2 = pack['iso2'].strip()
         self.iso3 = pack['iso3'].strip()
@@ -61,17 +62,25 @@ class citymodel:
         print(divdown)
 
     def closestAirport(self):
-        keylati = round((self.lati%10)/10)*10 + self.lati//10
-        keylong = round((self.long%10)/10)*10 + self.long//10
+        keylati = getkey(self.lati)
+        keylong = getkey(self.long)
+        lowest = 999999999999999
+        best = None
+        for i in [-10,0,10]:
+            for j in [-10,0,10]:
+                got = self.getBest(keylati+i,keylong+j,lowest,best)   
+                lowest = got[0]
+                best = got[1]
+        if self.airport == None:
+            self.printmodel()
+    
+    def getBest(self,keylati,keylong,lowest,best):
         entrylati = mp.get(analyzer['airports-tree-lati'],keylati)
         entrylong = mp.get(analyzer['airports-tree-long'],keylong)
 
         if entrylati != None and entrylong != None:
             latilst = entrylati['value']
             longlst = entrylong['value']
-            
-            lowest = 9999999
-            best = None
 
             for airport in lt.iterator(latilst):
                 distance = haversine(self.lati,self.long,airport.lati,airport.long)
@@ -84,6 +93,7 @@ class citymodel:
                     lowest = distance
                     best = airport
             self.airport = best
+        return lowest,best
                     
 # ==============================
 # CHARGE DATA
@@ -124,7 +134,7 @@ def loadair(airportdata):
 
 def loadtree(airport):
     lati = airport.lati
-    key = round((lati%10)/10)*10 + lati//10
+    key = getkey(lati)
     entry = mp.get(analyzer['airports-tree-lati'],key)
     if entry == None:
         lst = lt.newList()
@@ -135,7 +145,7 @@ def loadtree(airport):
         lt.addLast(lst,airport)
 
     long = airport.long
-    key = round((long%10)/10)*10 + long//10
+    key = getkey(long)
     entry = mp.get(analyzer['airports-tree-long'],key)
     if entry == None:
         lst = lt.newList()
@@ -249,7 +259,7 @@ def cmptree(i,j):
 # ==============================
 
 def haversine(lat1, lon1, lat2, lon2):
-    R = 3959.87433 # this is in miles.  For Earth radius in kilometers use 6372.8 km
+    R = 6372.8 # this is in miles.  For Earth radius in kilometers use 6372.8 km
     dLat = radians(lat2 - lat1)
     dLon = radians(lon2 - lon1)
     lat1 = radians(lat1)
@@ -260,9 +270,10 @@ def haversine(lat1, lon1, lat2, lon2):
     
     return R * c
 
-def findAirport(city:citymodel):
-    return city.closestAirport
-
+def getkey(x):
+  newround = lambda x: Decimal(x).quantize(0,ROUND_HALF_UP)
+  key = lambda x: newround(10*(newround(x/10)))
+  return key(x)
 
 # ==============================
 # REQUIREMENTS
@@ -305,16 +316,16 @@ def req3(city1:str,city2:str,chosen: list):
 
     pathstack = djk.pathTo(search,city2.airport.code)
     path = lt.newList()
-    current = 0
+    current = pathstack.pop(pathstack)
     while current != None:
-        current = pathstack.pop(pathstack)
-        print(current)
         lt.addLast(path,current)
+        current = pathstack.pop(pathstack)
     sys.exit(0)
     stops = None
     return city1,city2,cost,path,stops
 
 def req4(city, milles):
+
     #graph = djk.Dijkstra(None, city)
     pass
 
