@@ -71,8 +71,16 @@ class citymodel:
                 got = self.getBest(keylati+i,keylong+j,lowest,best)   
                 lowest = got[0]
                 best = got[1]
+
         if self.airport == None:
-            self.printmodel()
+            start = 20
+            while self.airport == None:
+                for i in [-start,start]:
+                    for j in [-start,start]:
+                        got = self.getBest(keylati+i,keylong+j,lowest,best)   
+                        lowest = got[0]
+                        best = got[1]
+                start += 10
     
     def getBest(self,keylati,keylong,lowest,best):
         entrylati = mp.get(analyzer['airports-tree-lati'],keylati)
