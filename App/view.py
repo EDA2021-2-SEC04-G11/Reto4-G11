@@ -104,13 +104,41 @@ def req2():
   print(f"TIME REQUIRED : {timef}")
 
 def req3():
+  """
+St. Petersburg
+Lisbon
+  """
   print('+-+-+-+-+-+-+-+-+ REQ 3 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
+  chosen = [None,None]
   city1 = input('Departure city?\n').strip()
   city2 = input('Arrival city?\n').strip()
+  check = controller.req3(city1,city2,[None,None])
+  while check == False:
+    print('\nWe could not find this city, please try again.\n')
+    city1 = input('Departure city?\n').strip()
+    city2 = input('Arrival city?\n').strip()
+    check = controller.req3(city1,city2,[None,None])
+  print('\nPlease, choose the city in interest in the following lists:')
+  print('A - For departure city:')
+  j = 0
+  for i in lt.iterator(check[0]):
+    print(f"Option {j+1}: ")
+    i.printmodel()
+    j+=1
+  A = int(input('Ans:').strip()) - 1
+  chosen[0] = A
+  print('B - For arrival city:')
+  j = 0
+  for i in lt.iterator(check[1]):
+    print(f"Option {j+1}: ")
+    i.printmodel()
+    j+=1
+  B = int(input('Ans:').strip()) - 1
+  chosen[1] = B
   # DATA
   start_time = time.process_time()
-  pack = controller.req3(city1,city2)
+  pack = controller.req3(city1,city2,chosen)
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
@@ -178,18 +206,25 @@ while True:
     except:
       continue
   if option == 1:
+    clear()
     req1()
   elif option == 2:
+    clear()
     req2()
   elif option == 3:
+    clear()
     req3()
   elif option == 4:
+    clear()
     req4()
   elif option == 5:
+    clear()
     req5()
   elif option == 6:
+    clear()
     req6()
   elif option == 7:
+    clear()
     req7()
   elif option == 0:
     sys.exit(0)
