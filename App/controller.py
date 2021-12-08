@@ -17,6 +17,7 @@ def loaddata():
   loadairports()
   loadcities()
   loadroutes()
+  #exhibition()
 
 def loadairports():
   filedir = cf.data_dir + 'Skylines/airports-utf8-small.csv'
@@ -35,6 +36,9 @@ def loadroutes():
   file = csv.DictReader(open(filedir, encoding='utf-8'))
   for routedata in file:
     model.loadroute(routedata)
+
+def exhibition():
+  model.exhibition()
 
 # REQUIREMENTS
 

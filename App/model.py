@@ -1,6 +1,7 @@
 ﻿import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from DISClib.ADT import stack as st
 from DISClib.DataStructures import edge as ed
 from DISClib.DataStructures import bst
 from DISClib.DataStructures import rbt
@@ -52,37 +53,32 @@ class citymodel:
             self.population = 0
         self.id = float(pack['id'].strip())
         self.airport = None
+        self.lowest = 999999999999999
         self.closestAirport()
     def printmodel(self):
         populationstr = '{:4e}'.format(self.population)
-        divup = '_'*64+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr))
-        divdown = '-'*64+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr))
+        divup = '_'*76+'_'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr)+len(self.airport.code))
+        divdown = '-'*76+'-'*(len(self.city)+len(self.country)+len(str(self.lati))+len(str(self.long))+len(populationstr)+len(self.airport.code))
         print(divup)
-        print(f'| city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} | population: {populationstr} |')
+        print(f'| city: {self.city} | country: {self.country} | latitude: {self.lati} | longitude: {self.long} | population: {populationstr} | airport: {self.airport.code} |')
         print(divdown)
 
     def closestAirport(self):
         keylati = getkey(self.lati)
         keylong = getkey(self.long)
-        lowest = 999999999999999
-        best = None
         for i in [-10,0,10]:
             for j in [-10,0,10]:
-                got = self.getBest(keylati+i,keylong+j,lowest,best)   
-                lowest = got[0]
-                best = got[1]
+                self.getBest(keylati+i,keylong+j)   
 
         if self.airport == None:
             start = 20
             while self.airport == None:
                 for i in [-start,start]:
                     for j in [-start,start]:
-                        got = self.getBest(keylati+i,keylong+j,lowest,best)   
-                        lowest = got[0]
-                        best = got[1]
+                        self.getBest(keylati+i,keylong+j)   
                 start += 10
     
-    def getBest(self,keylati,keylong,lowest,best):
+    def getBest(self,keylati,keylong):
         entrylati = mp.get(analyzer['airports-tree-lati'],keylati)
         entrylong = mp.get(analyzer['airports-tree-long'],keylong)
 
@@ -92,17 +88,35 @@ class citymodel:
 
             for airport in lt.iterator(latilst):
                 distance = haversine(self.lati,self.long,airport.lati,airport.long)
-                if distance < lowest:
-                    lowest = distance
-                    best = airport
+                # if self.city == 'Lisbon' and self.country == 'Portugal' and airport.city == 'Lisbon':
+                #     print(f"{self.lowest} || {distance} || {keylati} || {keylong}")
+                #     airport.printmodel()
+                if distance < self.lowest:
+                    self.lowest = distance
+                    self.airport = airport
             for airport in lt.iterator(longlst):
                 distance = haversine(self.lati,self.long,airport.lati,airport.long)
-                if distance < lowest:
-                    lowest = distance
-                    best = airport
-            self.airport = best
-        return lowest,best
-                    
+                # if self.city == 'Lisbon' and self.country == 'Portugal' and airport.city == 'Lisbon':
+                #     print(f"{self.lowest} || {distance} || {keylati} || {keylong}")
+                #     airport.printmodel()
+                if distance < self.lowest:
+                    self.lowest = distance
+                    self.airport = airport
+
+class edgemodel:
+    def __init__(self,pack) -> None:
+        self.A = ed.either(pack)
+        self.B = ed.other(pack,self.A)
+        self.weight = ed.weight(pack)
+    
+    def printmodel(self):
+        toprint = f'| Departure: {self.A} | Destination: {self.B} | Distance [km]: {self.weight} |'
+        divup = '_'*len(toprint)
+        divdown = '-'*len(toprint)
+        print(divup)
+        print(toprint)
+        print(divdown)
+
 # ==============================
 # CHARGE DATA
 # ==============================
@@ -213,6 +227,24 @@ def loadrouteNodir(routedata):
             weightfound = ed.weight(edgefound)
             if weightfound == weight:
                 gr.addEdge(analyzer['airports-nodir'],a,b,weight)
+
+# def exhibition():
+#     # For airports-dir
+#     vertexlst = gr.vertices(analyzer['airports-dir'])
+#     firstkey = lt.firstElement(vertexlst)
+#     lastkey = lt.lastElement(vertexlst)
+#     first = mp.get(analyzer['airports-map'],firstkey)['value']
+#     last = mp.get(analyzer['airports-map'],lastkey)['value']
+#     lt.addFirst(analyzer['exhibition']['airports-dir'],first)
+#     lt.addLast(analyzer['exhibition']['airports-dir'],last)
+#     # For airports-nodir
+#     vertexlst = gr.vertices(analyzer['airports-nodir'])
+#     firstkey = lt.firstElement(vertexlst)
+#     lastkey = lt.lastElement(vertexlst)
+#     first = mp.get(analyzer['airports-map'],firstkey)['value']
+#     last = mp.get(analyzer['airports-map'],lastkey)['value']
+#     lt.addFirst(analyzer['exhibition']['airports-nodir'],first)
+#     lt.addLast(analyzer['exhibition']['airports-nodir'],last)
 
 # ==============================
 # COMPARE FUNCTIONS
@@ -325,20 +357,23 @@ def req3(city1:str,city2:str,chosen: list):
     search = djk.Dijkstra(analyzer['airports-dir'],city1.airport.code)
     cost = djk.distTo(search,city2.airport.code)
 
-    print(city1.airport.code,city2.airport.code)
-
+    stops = mp.newMap(numelements=5)
     pathstack = djk.pathTo(search,city2.airport.code)
     path = lt.newList()
-    current = pathstack.pop(pathstack)
-    while current != None:
-        lt.addLast(path,current)
-        current = pathstack.pop(pathstack)
-
-    for i in lt.iterator(path):
-        print(i)
-    sys.exit(0)
-    stops = None
-    return city1,city2,cost,path,stops
+    if pathstack != None:
+        for _ in range(st.size(pathstack)):
+            edge = edgemodel(st.pop(pathstack))
+            lt.addLast(path,edge)
+            
+            entry = mp.get(analyzer['airports-map'],edge.A)
+            value = me.getValue(entry)
+            mp.put(stops,edge.A,value)
+            entry = mp.get(analyzer['airports-map'],edge.B)
+            value = me.getValue(entry)
+            mp.put(stops,edge.B,value)
+    else:
+        return None
+    return cost,path,stops  # float, lt.list, mp.map
 
 def req4(city, milles):
 

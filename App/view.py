@@ -2,6 +2,8 @@
 import sys
 import controller
 from DISClib.ADT import list as lt
+from DISClib.ADT import map as mp
+from DISClib.DataStructures import mapentry as me
 from DISClib.ADT.graph import gr
 import os
 assert cf
@@ -118,14 +120,14 @@ Lisbon
     city1 = input('Departure city?\n').strip()
     city2 = input('Arrival city?\n').strip()
     check = controller.req3(city1,city2,[None,None])
-  print('\nPlease, choose the city in interest in the following lists:')
+  print('\nPlease, choose the city of interest in the following lists:')
   print('A - For departure city:')
   j = 0
   for i in lt.iterator(check[0]):
     print(f"Option {j+1}: ")
     i.printmodel()
     j+=1
-  A = int(input('Ans:').strip()) - 1
+  A = int(input('Ans A:').strip())
   chosen[0] = A
   print('B - For arrival city:')
   j = 0
@@ -133,7 +135,7 @@ Lisbon
     print(f"Option {j+1}: ")
     i.printmodel()
     j+=1
-  B = int(input('Ans:').strip()) - 1
+  B = int(input('Ans B:').strip())
   chosen[1] = B
   # DATA
   start_time = time.process_time()
@@ -141,6 +143,21 @@ Lisbon
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
   # PRINT
+  if pack != None:
+    distance,path,stops = pack
+    start = f' -||- Total distance [KM]: {distance}'
+    print('_'*len(start))
+    print(start)
+    print(f' -||- Trip path:')
+    for edge in lt.iterator(path):
+      edge.printmodel()
+    print(f' -||- Trip stops:')
+    keys = mp.keySet(stops)
+    for key in lt.iterator(keys):
+      airport = me.getValue(mp.get(stops,key))
+      airport.printmodel()
+  else:
+    print(f"\nSorry, we couldn't find a rounte from the city {city1} to {city2} in our databases, please try again.")
   print(f"TIME REQUIRED : {timef}")
 
 def req4():
