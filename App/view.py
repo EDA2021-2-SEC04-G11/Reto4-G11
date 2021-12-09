@@ -26,13 +26,14 @@ def printMenu():
 def charge():
   clear()
   start_time = time.process_time()
-  print('\n\n ... LOADING DATA ...\n\n')
+  print('\n\n<<<<<<<<<<<<<<<<<<<< LOADING DATA >>>>>>>>>>>>>>>>>>>>>\n')
   analyzer = init()
   loaddata()
-  print('\n\n ... DATA LOADED ...\n\n')
+  print('<<<<<<<<<<<<<<<<<<<< DATA LOADED >>>>>>>>>>>>>>>>>>>>>\n\n')
   stop_time = time.process_time()
-  elapsed_time_mseg = round((stop_time - start_time)*1000,2)
+  timef = round((stop_time - start_time)*1000,2)
   exhibition(analyzer)
+  print(f"TIME REQUIRED : {timef}")
   input('\nPRESS ENTER TO CONTINUE')
   clear()
   return analyzer
@@ -48,17 +49,19 @@ def exhibition(analyzer):
   print('\n\n')
   print("== Airports-Routes Digraph ==")
   print(f"Total airports: {gr.numVertices(analyzer['airports-dir'])}")
+  print(f"Total of airport routes: {gr.numEdges(analyzer['airports-dir-helper'])}")
   print(f"Total of airport edges: {gr.numEdges(analyzer['airports-dir'])}")
   print('First and last airport loaded:')
-  for i in lt.iterator(analyzer['exhibition']['airports-dir']):
+  for i in lt.iterator(analyzer['exhibition']['airports-dir']['lst']):
     i.printmodel()
 
   print('\n\n')
   print("== Airports-Routes Graph ==")
   print(f"Total airports: {gr.numVertices(analyzer['airports-nodir'])}")
+  print(f"Total of airport routes: {gr.numEdges(analyzer['airports-nodir-helper'])}")
   print(f"Total of airport edges: {gr.numEdges(analyzer['airports-nodir'])}")
   print('First and last airport loaded:')
-  for i in lt.iterator(analyzer['exhibition']['airports-nodir']):
+  for i in lt.iterator(analyzer['exhibition']['airports-nodir']['lst']):
     i.printmodel()
 
   print('\n\n')
@@ -90,15 +93,26 @@ def req1():
   print(f"TIME REQUIRED : {timef}")
 
 def req2():
+  """
+LED
+RTP
+  """
   print('+-+-+-+-+-+-+-+-+ REQ 2 +-+-+-+-+-+-+-+-+\n')
-  # INPUTS
-  code1 = input('First IATA?\n').strip()
-  code2 = input('Second IATA?\n').strip()
-  # DATA
-  start_time = time.process_time()
-  pack = controller.req2(code1,code2)
-  stop_time = time.process_time()
-  timef = round((stop_time - start_time)*1000,2)
+  pack = None
+  while pack == None:
+    # INPUTS
+    code1 = input('First IATA?\n').strip()
+    code2 = input('Second IATA?\n').strip()
+    if code1 == 'exit' or code2 == 'exit':
+      return
+    # DATA
+    start_time = time.process_time()
+    pack = controller.req2(code1,code2)
+    stop_time = time.process_time()
+    timef = round((stop_time - start_time)*1000,2)
+    
+    if pack == None:
+      print('\nWe could not find this city, please try again.\n')
   # PRINT
   print(f"There are {pack[0]['components']} Strongly Connected Componentes [SCC] in the Airport-Route network")
   print(f'Airports {code1} and {code2} are in the same SCC? {pack[1]}')
@@ -110,10 +124,13 @@ Saint Petersburg
 Lisbon
   """
   print('+-+-+-+-+-+-+-+-+ REQ 3 +-+-+-+-+-+-+-+-+\n')
+
   # INPUTS
   chosen = [None,None]
   city1 = input('Departure city?\n').strip()
   city2 = input('Arrival city?\n').strip()
+  if city1 == 'exit' or city2 == 'exit':
+    return
   check = controller.req3(city1,city2,[None,None])
   while check == False:
     print('\nWe could not find this city, please try again.\n')
@@ -137,11 +154,13 @@ Lisbon
     j+=1
   B = int(input('Ans B:').strip())
   chosen[1] = B
+
   # DATA
   start_time = time.process_time()
   pack = controller.req3(city1,city2,chosen)
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
+  
   # PRINT
   if pack != None:
     distance,path,stops = pack
@@ -161,32 +180,60 @@ Lisbon
   print(f"TIME REQUIRED : {timef}")
 
 def req4():
+  """
+LIS
+19850
+  """
   print('+-+-+-+-+-+-+-+-+ REQ 4 +-+-+-+-+-+-+-+-+\n')
+
   # INPUTS
+  miles = None
+  while type(miles) != float:
+    airportcode = input('Departure airport?\n').strip()
+    try:
+      miles = float(input('User Miles?\n').strip())
+    except:
+      miles = None
+    if airportcode == 'exit' or miles == 'exit':
+      return
   # DATA
   start_time = time.process_time()
-  city = input('Departure city?\n').strip()
-  miles = float(input('User Miles?\n'))
-  pack = controller.req4(city, miles)
+  pack = controller.req4(airportcode, miles)
   stop_time = time.process_time()
   timef = round((stop_time - start_time)*1000,2)
+
   # PRINT
+  if pack!= None:
+    print(f"There are {pack[2]} nodes conected to the MST")
+    print(f"The total cost of the MST is {pack[1]}")
+    print(f"Distance left: {miles - pack[1]}")
+    print(f"Detailed path:")
+    for i in lt.iterator(pack[0]):
+      i.printmodel()
   print(f"TIME REQUIRED : {timef}")
 
 def req5():
+  """
+DXB
+  """
   print('+-+-+-+-+-+-+-+-+ REQ 5 +-+-+-+-+-+-+-+-+\n')
   # INPUTS
-  # DATA
-  start_time = time.process_time()
-  airport = input('Departure airport?\n').strip()
-  pack = controller.req5(airport)
+  pack = None
+  while pack == None:
+    airport = input('Departure airport?\n').strip()
+    if airport == 'exit':
+      return
+    start_time = time.process_time()
+    pack = controller.req5(airport)
+    stop_time = time.process_time()
+    timef = round((stop_time - start_time)*1000,2)
+    if pack == None:
+      print("We couldn't find that airport, try again")
+  # PRINT
   print(f"There are {pack[0]} airport(s) affected by the removal of {airport}")
   print(f"The first & last 3 airports affected are:")
-  for airport in lt.iterator(pack[1]):
-    print(f'IATA: {airport.code} | Name: {airport.name} | City: {airport.city} |\n')
-  stop_time = time.process_time()
-  timef = round((stop_time - start_time)*1000,2)
-  # PRINT
+  for i in lt.iterator(pack[1]):
+    i.printmodel()
   print(f"TIME REQUIRED : {timef}")
 
 def req6():
