@@ -67,7 +67,7 @@ class citymodel:
         self.id = float(pack['id'].strip())
         self.airport = None
         self.lowest = 999999999999999
-        #self.closestAirport()
+        self.closestAirport()
     def printmodel(self):
         try:
             nearest = f"{self.airport.code} - country: {self.airport.country} - city: {self.airport.city} - lati: {self.airport.lati} - long: {self.airport.long}"
