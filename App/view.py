@@ -190,12 +190,12 @@ LIS
   miles = None
   while type(miles) != float:
     airportcode = input('Departure airport?\n').strip()
+    if airportcode == 'exit':
+      return
     try:
       miles = float(input('User Miles?\n').strip())
     except:
       miles = None
-    if airportcode == 'exit' or miles == 'exit':
-      return
   # DATA
   start_time = time.process_time()
   pack = controller.req4(airportcode, miles)
@@ -205,8 +205,8 @@ LIS
   # PRINT
   if pack!= None:
     print(f"There are {pack[2]} nodes conected to the MST")
-    print(f"The total cost of the MST is {pack[1]}")
-    print(f"Distance left: {miles - pack[1]}")
+    print(f"The total cost of the MST is {pack[1]} [KM], available: {miles*1.6} [KM]")
+    print(f"Distance left: {round(miles*1.6 - pack[1],4)} [KM] = {round(miles-pack[1]/1.6,4)} [MILES]")
     print(f"Detailed path:")
     for i in lt.iterator(pack[0]):
       i.printmodel()

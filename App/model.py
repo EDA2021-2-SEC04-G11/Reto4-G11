@@ -61,13 +61,13 @@ class citymodel:
         self.admin = pack['admin_name'].strip()
         self.capital = pack['capital'].strip()
         try:
-            self.popuPlation = round(float(pack['population'].strip()))
+            self.population = round(float(pack['population'].strip()))
         except:
             self.population = 0
         self.id = float(pack['id'].strip())
         self.airport = None
         self.lowest = 999999999999999
-        self.closestAirport()
+        #self.closestAirport()
     def printmodel(self):
         try:
             nearest = f"{self.airport.code} - country: {self.airport.country} - city: {self.airport.city} - lati: {self.airport.lati} - long: {self.airport.long}"
@@ -321,13 +321,9 @@ def cmpreq4(i,j):
         i = i['key']
     if type(j) == dict:
         j = j['key']
-    if i.A > j.A:
+    if i.weight > j.weight:
         return -1
-    if i.A < j.A:
-        return 1
-    if i.B > j.B:
-        return -1
-    if i.B > j.B:
+    if i.weight < j.weight:
         return 1
     return 0
 
@@ -434,37 +430,31 @@ def req4(start,miles):
     searchbfs = bfs.BreadhtFisrtSearch(analyzer['airports-nodir'],start)
 
     weight = 0
+    routesmaptemp = rbt.newMap(cmpreq4)
     routesmap = rbt.newMap(cmpreq4)
     nodes = rbt.newMap(cmpairport)
 
     for i in range(st.size(search['mst'])):
-        i = st.pop(copysearch['mst'])
-        edge = edgemodel(i)
-        edge.printmodel()
-
+        j = st.pop(copysearch['mst'])
+        edge = edgemodel(j)
+            
         if bfs.hasPathTo(searchbfs,edge.A):
-            if weight+edge.weight <= maxdistance:
-                weight+=edge.weight
-                rbt.put(routesmap,edge,0)
+            rbt.put(routesmaptemp,edge,0)
 
         if bfs.hasPathTo(searchbfs,edge.B):
-            if weight+edge.weight <= maxdistance:
-                weight+=edge.weight
-                rbt.put(routesmap,edge,0)
-
-    weight /= 2
-    routes = lt.newList()
-    keys = rbt.keySet(routesmap)
+            rbt.put(routesmaptemp,edge,0)
+    
+    #weight = weight /2
+    keys = rbt.keySet(routesmaptemp)
     for i in lt.iterator(keys):
-        if i.A == start:
-            lt.addFirst(routes,i)
-            rbt.put(nodes,i.A,0)
-            rbt.put(nodes,i.B,0)
-        else:
-            lt.addLast(routes,i)
-            rbt.put(nodes,i.A,0)
-            rbt.put(nodes,i.B,0)
-    return routes,weight,rbt.size(nodes)
+        rbt.put(nodes,i.A,0)
+        rbt.put(nodes,i.B,0)
+
+        if weight+i.weight <= maxdistance:
+            weight+=i.weight
+            rbt.put(routesmap,i,0)
+
+    return rbt.keySet(routesmap),weight,rbt.size(nodes)
 
 def req5(iata):
     lst = lt.newList('ARRAY_LIST')
