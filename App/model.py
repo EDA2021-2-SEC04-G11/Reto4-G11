@@ -61,7 +61,7 @@ class citymodel:
         self.admin = pack['admin_name'].strip()
         self.capital = pack['capital'].strip()
         try:
-            self.population = round(float(pack['population'].strip()))
+            self.popuPlation = round(float(pack['population'].strip()))
         except:
             self.population = 0
         self.id = float(pack['id'].strip())
